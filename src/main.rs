@@ -1,12 +1,14 @@
-#[macro_use]
-extern crate askama;
-extern crate pandoc;
+extern crate actix;
+extern crate actix_web;
+extern crate env_logger;
 
 #[macro_use]
 extern crate serde_derive;
-extern crate actix;
-extern crate actix_web;
 extern crate bytes;
+
+#[macro_use]
+extern crate askama;
+extern crate pandoc;
 
 use actix_web::{http, server, App, Form};
 use askama::Template;
@@ -65,6 +67,9 @@ fn gen_spa(form: Form<CustomerInfo>) -> Bytes {
 }
 
 fn main() {
+    let log_env = option_env!("RUST_LOG").unwrap_or("actix_net=info");
+    ::std::env::set_var("RUST_LOG", log_env);
+    env_logger::init();
     let sys = actix::System::new("Magnifee");
 
     server::new(|| App::new().resource("/gen", |r| r.method(http::Method::POST).with(gen_spa)))
@@ -72,6 +77,5 @@ fn main() {
         .unwrap()
         .start();
 
-    println!("Starting http server: 0.0.0.0:8080");
     let _ = sys.run();
 }
