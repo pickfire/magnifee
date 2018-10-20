@@ -1,0 +1,3 @@
+[submodule "rust-pandoc"]
+	path = rust-pandoc
+	url = git://github.com/pickfire/rust-pandoc
