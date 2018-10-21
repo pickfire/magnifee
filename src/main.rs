@@ -11,7 +11,7 @@ extern crate bytes;
 extern crate askama;
 extern crate pandoc;
 
-use actix_web::{http, server, App, Form};
+use actix_web::{http, http::header, server, App, Form, HttpResponse};
 use askama::Template;
 use bytes::Bytes;
 use listenfd::ListenFd;
@@ -31,7 +31,7 @@ struct SpaTemplate<'a> {
     address: &'a str,
 }
 
-fn gen_spa(form: Form<CustomerInfo>) -> Bytes {
+fn gen_spa(form: Form<CustomerInfo>) -> HttpResponse {
     let spa = SpaTemplate {
         fullname: &form.fullname,
         address: &form.address,
@@ -65,7 +65,11 @@ fn gen_spa(form: Form<CustomerInfo>) -> Bytes {
 
     let output = child.wait_with_output().expect("Failed to wait on child");
 
-    Bytes::from(output.stdout)
+    HttpResponse::Ok()
+        .header(
+            header::CONTENT_TYPE,
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ).body(Bytes::from(output.stdout))
 }
 
 fn main() {
