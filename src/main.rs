@@ -19,22 +19,27 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct CustomerInfo {
-    fullname: String,
-    address: String,
+    buyer_fullname: String,
+    buyer_nric: String,
+    buyer_address: String,
+    buyer_income_tax: String,
 }
 
 #[derive(Template)]
 #[template(path = "spa.md")]
 struct SpaTemplate<'a> {
-    fullname: &'a str,
-    address: &'a str,
+    buyer_fullname: &'a str,
+    buyer_nric: &'a str,
+    buyer_address: &'a str,
 }
 
 fn gen_spa(form: Form<CustomerInfo>) -> HttpResponse {
     let spa = SpaTemplate {
-        fullname: &form.fullname,
-        address: &form.address,
+        buyer_fullname: &form.buyer_fullname,
+        buyer_nric: &form.buyer_nric,
+        buyer_address: &form.buyer_address,
     };
     let markdown = spa.render().unwrap();
 
@@ -50,7 +55,7 @@ fn gen_spa(form: Form<CustomerInfo>) -> HttpResponse {
     // }
 
     let mut child = Command::new("/usr/bin/pandoc")
-        .args(&["--reference-doc", "reference.docx", "-t", "docx"])
+        .args(&["--reference-doc", "reference.docx", "-f", "markdown", "-t", "docx"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -84,7 +89,7 @@ fn main() {
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
         server.listen(l)
     } else {
-        server.bind("127.0.0.1:8080").unwrap()
+        server.bind("0.0.0.0:8080").unwrap()
     };
 
     server.run();
