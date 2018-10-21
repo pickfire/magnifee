@@ -21,4 +21,4 @@ With hot-reload:
 
 See Also
 --------
-[Magnifee Android Frontend](https://github.com/delacrixmorgan/zerocost)
+[Magnifee Android Frontend](https://github.com/delacrixmorgan/magnifee)
