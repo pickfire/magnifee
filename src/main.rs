@@ -1,6 +1,7 @@
 extern crate actix;
 extern crate actix_web;
 extern crate env_logger;
+extern crate listenfd;
 
 #[macro_use]
 extern crate serde_derive;
@@ -13,6 +14,7 @@ extern crate pandoc;
 use actix_web::{http, server, App, Form};
 use askama::Template;
 use bytes::Bytes;
+use listenfd::ListenFd;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
@@ -70,12 +72,16 @@ fn main() {
     let log_env = option_env!("RUST_LOG").unwrap_or("actix_net=info");
     ::std::env::set_var("RUST_LOG", log_env);
     env_logger::init();
-    let sys = actix::System::new("Magnifee");
 
-    server::new(|| App::new().resource("/gen", |r| r.method(http::Method::POST).with(gen_spa)))
-        .bind("0.0.0.0:8080")
-        .unwrap()
-        .start();
+    let mut listenfd = ListenFd::from_env();
+    let mut server =
+        server::new(|| App::new().resource("/gen", |r| r.method(http::Method::POST).with(gen_spa)));
 
-    let _ = sys.run();
+    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+        server.listen(l)
+    } else {
+        server.bind("127.0.0.1:8080").unwrap()
+    };
+
+    server.run();
 }
